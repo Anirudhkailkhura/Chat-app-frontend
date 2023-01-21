@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState , useEffect} from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import styled from "styled-components"
 import Logo from "../assets/logo.jpg";
@@ -9,7 +9,7 @@ import { registerRoute } from '../utils/APIRoutes';
 
 
 const Register = () => {
- 
+
   const navigate = useNavigate();
 
   const [values, setValues] = useState({
@@ -27,13 +27,18 @@ const Register = () => {
     theme: "dark",
 
   }
+  useEffect(() => {
+    if (localStorage.getItem("chat-app-user")) {
+      navigate("/"); //redirect to yhe home page if loged in
+    }
+  }, []);
 
   const handleChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value })
 
   }
 
-  const handleValidation = () => {                                  
+  const handleValidation = () => {
     const { password, confirmPassword, username, email } = values;
     if (password !== confirmPassword) {
       toast.error(
@@ -67,8 +72,8 @@ const Register = () => {
   //meaning that the default action that belongs to the event will not occur
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (handleValidation()) {                                          
-      const { password,  username, email } = values; //if condition is true call the api
+    if (handleValidation()) {
+      const { password, username, email } = values; //if condition is true call the api
       const { data } = await axios.post(registerRoute, {
         username,
         email,
