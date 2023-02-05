@@ -1,18 +1,106 @@
-import React from 'react'
+import React, { useState , useRef} from 'react'
 import styled from 'styled-components'
 import ChatInput from './ChatInput';
 import Logout from './Logout';
 
-const ChatContainer = ({ currentChat }) => {
+import { getMessagesRoute, sendMessageRoute } from '../utils/APIRoutes';
+import axios from 'axios';
+import { useEffect } from 'react';
+
+const ChatContainer = ({ currentChat, currentUser , socket}) => {
+
+  const [messages, setMessages] = useState([]);
+  const scrollRef = useRef();
+  const [arrivalMessage, setArrivalMessage] = useState(null);
+
+  // useEffect(async () => {
+  //   const response = await axios.post(getMessagesRoute, {
+  //     from: currentUser._id,
+  //     to: currentChat._id,
+  //   });
+  //   setMessages(response.data);
+  // }, [currentChat]);
+
+  // A race condition can occur in this code if the currentChat variable changes while the network request is in progress.
+  // To solve this, you can use the useEffect cleanup function to cancel the in-flight request when the component unmounts or the currentChat variable changes.
+
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchData = async () => {
+      try {
+        const response = await axios.post(getMessagesRoute, {
+          from: currentUser._id,
+          to: currentChat._id,
+        });
+        if (!isCancelled) {
+          setMessages(response.data);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          // handle error
+        }
+      }
+    };
+    fetchData();
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentChat]);
+
+  useEffect(() => {
+    const getCurrentChat = async () => {
+      if (currentChat) {
+        await JSON.parse(
+          localStorage.getItem("chat-app-user")
+        )._id;
+      }
+    };
+    getCurrentChat();
+  }, [currentChat]);
+
+
   const handleSendMsg = async (msg) => {
-   
-    
+    await axios.post(sendMessageRoute, {
+      from: currentUser._id,
+      to: currentChat._id,
+      message: msg,
+    })
+
+    socket.current.emit("send-msg",{
+      to:currentChat._id,
+      from: currentUser._id,
+      message: msg,
+    });
+
+    const msgs = [...messages];
+    msgs.push({ fromSelf: true, message: msg });
+    setMessages(msgs);
   };
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.on("msg-recieve", (msg) => {
+        setArrivalMessage({ fromSelf: false, message: msg });
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+
+    
+
+
+  
   return (
     <>
       {currentChat && (
-
-
         <Container>
           <div className='chat-header'>
             <div className='user-details'>
@@ -26,10 +114,26 @@ const ChatContainer = ({ currentChat }) => {
                 <h3>{currentChat.username}</h3>
               </div>
             </div>
-            <Logout/>
+            <Logout />
           </div>
-          <div className='chat-message'></div>
-           <ChatInput handleSendMsg = { handleSendMsg}/> 
+          <div className="chat-messages">
+            {messages.map((message) => {
+              return (
+                <div >
+                  <div
+                    className={`message ${message.fromSelf ? "sended" : "recieved"
+                      }`}
+                  >
+                    <div className="content ">
+                      <p>{message.message}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <ChatInput handleSendMsg={handleSendMsg} />
         </Container>
       )}
     </>
@@ -45,6 +149,9 @@ const Container = styled.div`
   @media screen and (min-width: 720px) and (max-width: 1080px) {
     grid-template-rows: 15% 70% 15%;
   }
+  @media screen and (max-width: 720px) {
+  grid-template-rows: 20% 60% 20%;
+}
   .chat-header {
     display: flex;
     justify-content: space-between;

@@ -7,50 +7,49 @@ import { useState } from 'react'
 
 function ChatInput({ handleSendMsg }) {
 
+  const [showEmojiPicker, setshowEmojiPicker] = useState(false);
+  const [msg, setMsg] = useState("")
+  const handleEmojiPickerHideShow = () => {
+    setshowEmojiPicker(!showEmojiPicker)
 
-    const [showEmojiPicker, setshowEmojiPicker] = useState(false);
-    const [msg, setMsg] = useState("")
-    const handleEmojiPickerHideShow = () => {
-        setshowEmojiPicker(!showEmojiPicker)
+  }
+  const handleEmojiClick = (event, emojiObject) => {
+    let message = msg;
+    message += emojiObject.emoji;
+    setMsg(message);
+  }
 
+  const sendChat = (event) => {
+    event.preventDefault();
+    if (msg.length > 0) {
+      handleSendMsg(msg);
+      msg("")
     }
-    const handleEmojiClick = (event, emojiObject) => {
-        let message = msg;
-        message += emojiObject.emoji;
-        setMsg(message);
-    }
+  }
 
-    const sendChat = (event) => {
-        event.preventDefault();
-        if (msg.length > 0) {
-            handleSendMsg(msg);
-            msg("")
-        }
-    }
+  return (
+    <Container>
+      <div className="button_container">
+        <div className="emoji">
+          <BsEmojiSmileFill onClick={handleEmojiPickerHideShow} />
+          {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
+        </div>
+      </div>
+      <form className='input-container' onSubmit={(event) => sendChat(event)}>
+        <input
+          type="text"
+          placeholder='type your msg here'
+          onChange={(e) => setMsg(e.target.value)}
+          value={msg} />
 
-    return (
-        <Container>
-            <div className="button_container">
-                <div className="emoji">
-                    <BsEmojiSmileFill onClick={handleEmojiPickerHideShow} />
-                    {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />}
-                </div>
-            </div>
-            <form className='input-container' onSubmit={(event) => sendChat (event)}>
-                <input 
-                type="text"
-                 placeholder='type your msg here'
-                 onChange={(e) => setMsg(e.target.value)} 
-                 value = {msg}/>
-
-                <button className=''>
-                    <IoMdSend />
-                </button>
-            </form>
+        <button className=''>
+          <IoMdSend />
+        </button>
+      </form>
 
 
-        </Container>
-    )
+    </Container>
+  )
 }
 
 
