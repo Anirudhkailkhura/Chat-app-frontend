@@ -1,4 +1,4 @@
-import React, { useState , useRef} from 'react'
+import React, { useState, useRef } from 'react'
 import styled from 'styled-components'
 import ChatInput from './ChatInput';
 import Logout from './Logout';
@@ -7,7 +7,7 @@ import { getMessagesRoute, sendMessageRoute } from '../utils/APIRoutes';
 import axios from 'axios';
 import { useEffect } from 'react';
 
-const ChatContainer = ({ currentChat, currentUser , socket}) => {
+const ChatContainer = ({ currentChat, currentUser, socket }) => {
 
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
@@ -66,8 +66,8 @@ const ChatContainer = ({ currentChat, currentUser , socket}) => {
       message: msg,
     })
 
-    socket.current.emit("send-msg",{
-      to:currentChat._id,
+    socket.current.emit("send-msg", {
+      to: currentChat._id,
       from: currentUser._id,
       message: msg,
     });
@@ -94,10 +94,10 @@ const ChatContainer = ({ currentChat, currentUser , socket}) => {
   }, [messages]);
 
 
-    
 
 
-  
+
+
   return (
     <>
       {currentChat && (
