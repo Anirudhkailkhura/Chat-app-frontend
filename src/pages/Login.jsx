@@ -23,7 +23,6 @@ const Login = () => {
     pauseOnHover: true,
     draggable: true,
     theme: "dark",
-
   }
 
   useEffect(() => {
